@@ -1,0 +1,789 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="fade-in">
+
+    <div class="card">
+        <div class="welcome-header">
+            <div class="welcome-content">
+                <h1><i class="fas fa-shield-alt"></i> Welcome to Zer0Cloud</h1>
+                <p class="welcome-subtitle">Comprehensive Cloud Security Audit & Monitoring Platform</p>
+                <div class="welcome-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalScans">0</span>
+                        <span class="stat-label">Total Scans</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="activeFindings">0</span>
+                        <span class="stat-label">Active Findings</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="securityScore">95</span>
+                        <span class="stat-label">Security Score</span>
+                    </div>
+                </div>
+            </div>
+            <div class="welcome-actions">
+                <button class="btn btn-primary" onclick="window.location.href='/scan'">
+                    <i class="fas fa-play"></i> Start New Scan
+                </button>
+                <button class="btn btn-secondary" onclick="window.location.href='/report'">
+                    <i class="fas fa-chart-bar"></i> View Reports
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="dashboard-grid">
+        <div class="card stats-card">
+            <div class="stats-icon high-risk">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <span class="number" id="highRiskFindings">0</span>
+            <span class="label">High Risk Findings</span>
+        </div>
+        
+        <div class="card stats-card">
+            <div class="stats-icon medium-risk">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <span class="number" id="mediumRiskFindings">0</span>
+            <span class="label">Medium Risk Findings</span>
+        </div>
+        
+        <div class="card stats-card">
+            <div class="stats-icon low-risk">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <span class="number" id="lowRiskFindings">0</span>
+            <span class="label">Low Risk Findings</span>
+        </div>
+        
+        <div class="card stats-card">
+            <div class="stats-icon resources">
+                <i class="fas fa-server"></i>
+            </div>
+            <span class="number" id="totalResources">0</span>
+            <span class="label">Resources Monitored</span>
+        </div>
+    </div>
+
+
+    <div class="dashboard-row">
+        <div class="card chart-container">
+            <h3 class="chart-title"><i class="fas fa-history"></i> Recent Scan Activity</h3>
+            <div class="activity-timeline" id="activityTimeline">
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h4>No recent activity</h4>
+                        <p>Start your first security scan to see activity here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card chart-container">
+            <h3 class="chart-title"><i class="fas fa-bolt"></i> Quick Actions</h3>
+            <div class="quick-actions">
+                <button class="quick-action-btn" onclick="quickScan('aws')">
+                    <i class="fas fa-cloud"></i>
+                    <span>Quick AWS Scan</span>
+                </button>
+                <button class="quick-action-btn" onclick="quickScan('comprehensive')">
+                    <i class="fas fa-search"></i>
+                    <span>Full Security Audit</span>
+                </button>
+                <button class="quick-action-btn" onclick="window.location.href='/settings'">
+                    <i class="fas fa-cog"></i>
+                    <span>Configure Settings</span>
+                </button>
+                <button class="quick-action-btn" onclick="exportData()">
+                    <i class="fas fa-download"></i>
+                    <span>Export Data</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card">
+        <h3><i class="fas fa-chart-pie"></i> Security Overview</h3>
+        <div class="security-overview">
+            <div class="overview-item">
+                <div class="overview-header">
+                    <h4>AWS Security Status</h4>
+                    <span class="status-badge success" id="awsStatusBadge">Secure</span>
+                </div>
+                <div class="overview-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%" id="progressFillOverview"></div>
+                    </div>
+                    <span class="progress-text" id="progressTextOverview">85% Compliant</span>
+                </div>
+            </div>
+            
+            <div class="overview-item">
+                <div class="overview-header">
+                    <h4>Last Scan Results</h4>
+                    <span class="status-badge warning" id="lastScanBadge">2 Issues Found</span>
+                </div>
+                <div class="overview-details">
+                    <p><i class="fas fa-calendar"></i> Last scanned: <span id="lastScanTime">Never</span></p>
+                    <p><i class="fas fa-clock"></i> Duration: <span id="lastScanDuration">-</span></p>
+                </div>
+            </div>
+            
+            <div class="overview-item">
+                <div class="overview-header">
+                    <h4>Next Scheduled Scan</h4>
+                    <span class="status-badge info">Scheduled</span>
+                </div>
+                <div class="overview-details">
+                    <p><i class="fas fa-calendar-check"></i> Next scan: <span id="nextScanTime">Not scheduled</span></p>
+                    <p><i class="fas fa-bell"></i> Notifications: <span id="notificationStatus">Enabled</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card">
+        <h3><i class="fas fa-exclamation-triangle"></i> Recent Security Findings</h3>
+        <div class="findings-preview" id="recentFindings">
+            <div class="finding-preview-item">
+                <div class="finding-preview-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <div class="finding-preview-content">
+                    <h4>No findings yet</h4>
+                    <p>Run a security scan to discover potential issues in your cloud infrastructure.</p>
+                </div>
+            </div>
+        </div>
+        <div class="findings-actions">
+            <button class="btn btn-primary" onclick="window.location.href='/scan'">
+                <i class="fas fa-search"></i> Run Security Scan
+            </button>
+            <button class="btn btn-secondary" onclick="window.location.href='/report'">
+                <i class="fas fa-eye"></i> View All Findings
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.welcome-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+}
+
+.welcome-content h1 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 2.5rem;
+}
+
+.welcome-subtitle {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+}
+
+.welcome-stats {
+    display: flex;
+    gap: 30px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #007BFF;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.welcome-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.stats-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stats-icon.high-risk {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+}
+
+.stats-icon.medium-risk {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+}
+
+.stats-icon.low-risk {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+}
+
+.stats-icon.resources {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+}
+
+.dashboard-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+.activity-timeline {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 15px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    color: #007BFF;
+}
+
+.activity-content h4 {
+    margin: 0 0 5px 0;
+    font-size: 1rem;
+}
+
+.activity-content p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+.quick-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: #f8f9fa;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.quick-action-btn:hover {
+    background: white;
+    border-color: #007BFF;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
+}
+
+.quick-action-btn i {
+    font-size: 1.5rem;
+    color: #007BFF;
+    width: 30px;
+}
+
+.security-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.overview-item {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border-left: 4px solid #007BFF;
+}
+
+.overview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.overview-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.info {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.overview-progress {
+    margin-top: 15px;
+}
+
+.progress-text {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 5px;
+    display: block;
+}
+
+.overview-details p {
+    margin: 5px 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.overview-details i {
+    width: 20px;
+    color: #007BFF;
+}
+
+.findings-preview {
+    margin-bottom: 20px;
+}
+
+.finding-preview-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+.finding-preview-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    color: #6c757d;
+    font-size: 1.2rem;
+}
+
+.finding-preview-content h4 {
+    margin: 0 0 5px 0;
+    color: #333;
+}
+
+.finding-preview-content p {
+    margin: 0;
+    color: #666;
+}
+
+.findings-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .welcome-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .welcome-stats {
+        justify-content: center;
+    }
+    
+    .dashboard-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .security-overview {
+        grid-template-columns: 1fr;
+    }
+    
+    .findings-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Load real dashboard stats from API
+    updateDashboardStats();
+    
+    // Load real recent activity from API
+    loadRecentActivity();
+    
+    // Auto-refresh dashboard stats every 30 seconds
+    setInterval(() => {
+        updateDashboardStats();
+        loadRecentActivity();
+    }, 30000); // Refresh every 30 seconds
+});
+
+// Function to update dashboard stats with real API data
+function updateDashboardStats() {
+    // Fetch all findings to get summary statistics
+    Promise.all([
+        fetch('/api/all-findings').then(r => r.json()),
+        fetch('/api/sessions').then(r => r.json()),
+        fetch('/api/latest-session').then(r => r.json()).catch(() => ({ error: 'No sessions' }))
+    ])
+    .then(([findingsData, sessionsData, latestSessionData]) => {
+        // Extract summary from findings
+        const summary = findingsData.summary || { high: 0, medium: 0, low: 0, total: 0 };
+        const high = summary.high || 0;
+        const medium = summary.medium || 0;
+        const low = summary.low || 0;
+        const totalFindings = summary.total || 0;
+        
+        // Get total scans from sessions
+        const totalScans = sessionsData.total_sessions || 0;
+        
+        // Estimate resources monitored (we can calculate from findings or use a placeholder)
+        // For now, we'll estimate based on unique resources in findings
+        const uniqueResources = new Set((findingsData.findings || []).map(f => f.resource)).size;
+        const totalResources = uniqueResources || 0;
+        
+        // Calculate Security Score: Max(0, 100 - (High*5 + Medium*3 + Low*1))
+        const scorePenalty = (high * 5 + medium * 3 + low * 1);
+        const securityScore = Math.max(0, Math.min(100, 100 - scorePenalty));
+        
+        // Compliance % (for Overview)
+        const compliance = Math.max(0, Math.min(100, 100 - Math.floor(scorePenalty / 2)));
+        
+        // Update dashboard stats
+        document.getElementById('totalScans').textContent = totalScans;
+        document.getElementById('activeFindings').textContent = totalFindings;
+        document.getElementById('securityScore').textContent = securityScore;
+        document.getElementById('highRiskFindings').textContent = high;
+        document.getElementById('mediumRiskFindings').textContent = medium;
+        document.getElementById('lowRiskFindings').textContent = low;
+        document.getElementById('totalResources').textContent = totalResources;
+        
+        // Update Overview Card
+        document.getElementById('progressFillOverview').style.width = `${compliance}%`;
+        document.getElementById('progressTextOverview').textContent = `${compliance}% Compliant`;
+
+        document.getElementById('lastScanBadge').textContent = `${totalFindings} Issues Found`;
+        if (totalFindings > 5) {
+            document.getElementById('lastScanBadge').className = 'status-badge warning';
+            document.getElementById('awsStatusBadge').textContent = 'Warning';
+            document.getElementById('awsStatusBadge').className = 'status-badge warning';
+        } else if (totalFindings > 0) {
+            document.getElementById('lastScanBadge').className = 'status-badge info';
+            document.getElementById('awsStatusBadge').textContent = 'Secure';
+            document.getElementById('awsStatusBadge').className = 'status-badge success';
+        } else {
+            document.getElementById('lastScanBadge').className = 'status-badge success';
+            document.getElementById('awsStatusBadge').textContent = 'Secure';
+            document.getElementById('awsStatusBadge').className = 'status-badge success';
+        }
+        
+        // Update Last Scan Time/Duration from latest session
+        if (latestSessionData.session && !latestSessionData.error) {
+            const session = latestSessionData.session;
+            const startTime = new Date(session.start_time);
+            document.getElementById('lastScanTime').textContent = startTime.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+            
+            if (session.end_time) {
+                const endTime = new Date(session.end_time);
+                const durationMs = endTime - startTime;
+                const minutes = Math.floor(durationMs / 60000);
+                const seconds = Math.floor((durationMs % 60000) / 1000);
+                document.getElementById('lastScanDuration').textContent = `${minutes}m ${seconds}s`;
+            } else {
+                document.getElementById('lastScanDuration').textContent = 'In Progress';
+            }
+        } else {
+            document.getElementById('lastScanTime').textContent = 'Never';
+            document.getElementById('lastScanDuration').textContent = '-';
+        }
+
+        // Update Recent Findings Preview with real findings
+        updateRecentFindings(findingsData.findings || []);
+    })
+    .catch(error => {
+        console.error('Error loading dashboard stats:', error);
+        // Fallback to zeros if API fails
+        document.getElementById('totalScans').textContent = '0';
+        document.getElementById('activeFindings').textContent = '0';
+        document.getElementById('securityScore').textContent = '100';
+        document.getElementById('highRiskFindings').textContent = '0';
+        document.getElementById('mediumRiskFindings').textContent = '0';
+        document.getElementById('lowRiskFindings').textContent = '0';
+        document.getElementById('totalResources').textContent = '0';
+        document.getElementById('lastScanTime').textContent = 'Never';
+        document.getElementById('lastScanDuration').textContent = '-';
+    });
+}
+
+// Function to update recent findings preview
+function updateRecentFindings(findings) {
+    const recentFindingsDiv = document.getElementById('recentFindings');
+    
+    // Sort findings by severity (HIGH > MEDIUM > LOW) and timestamp (newest first)
+    const sortedFindings = [...findings].sort((a, b) => {
+        const severityOrder = { 'HIGH': 0, 'MEDIUM': 1, 'LOW': 2 };
+        const severityDiff = (severityOrder[a.severity] || 3) - (severityOrder[b.severity] || 3);
+        if (severityDiff !== 0) return severityDiff;
+        
+        const timeA = new Date(a.timestamp || 0);
+        const timeB = new Date(b.timestamp || 0);
+        return timeB - timeA;
+    });
+    
+    // Show up to 3 most recent findings
+    const recentFindingsToShow = sortedFindings.slice(0, 3);
+    
+    if (recentFindingsToShow.length === 0) {
+        recentFindingsDiv.innerHTML = `
+            <div class="finding-preview-item">
+                <div class="finding-preview-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <div class="finding-preview-content">
+                    <h4>No findings yet</h4>
+                    <p>Run a security scan to discover potential issues in your cloud infrastructure.</p>
+                </div>
+            </div>`;
+        return;
+    }
+    
+    recentFindingsDiv.innerHTML = '';
+    recentFindingsToShow.forEach(finding => {
+        const severityColors = {
+            'HIGH': { bg: '#f8d7da', color: '#721c24', icon: 'exclamation-triangle' },
+            'MEDIUM': { bg: '#fff3cd', color: '#856404', icon: 'exclamation-circle' },
+            'LOW': { bg: '#d1ecf1', color: '#0c5460', icon: 'info-circle' }
+        };
+        const colors = severityColors[finding.severity] || severityColors['LOW'];
+        
+        const timeStr = finding.timestamp 
+            ? new Date(finding.timestamp).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })
+            : 'Unknown time';
+        
+        recentFindingsDiv.innerHTML += `
+            <div class="finding-preview-item">
+                <div class="finding-preview-icon" style="background: ${colors.bg}; color: ${colors.color};">
+                    <i class="fas fa-${colors.icon}"></i>
+                </div>
+                <div class="finding-preview-content">
+                    <h4>${finding.severity} Risk: ${finding.type || 'Security Issue'}</h4>
+                    <p><strong>Resource:</strong> ${finding.resource || 'N/A'}</p>
+                    <p>${finding.description || 'No description available'}</p>
+                    <p style="font-size: 0.8rem; color: #666; margin-top: 5px;"><i class="fas fa-clock"></i> ${timeStr}</p>
+                </div>
+            </div>`;
+    });
+}
+
+function loadRecentActivity() {
+    const timeline = document.getElementById('activityTimeline');
+    
+    // Fetch real scan sessions from API
+    fetch('/api/sessions')
+        .then(response => response.json())
+        .then(data => {
+            const sessions = data.sessions || [];
+            
+            if (sessions.length === 0) {
+                timeline.innerHTML = `
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h4>No recent activity</h4>
+                            <p>Start your first security scan to see activity here.</p>
+                        </div>
+                    </div>`;
+                return;
+            }
+            
+            // Sort sessions by start time (newest first)
+            const sortedSessions = [...sessions].sort((a, b) => {
+                const timeA = new Date(a.start_time || 0);
+                const timeB = new Date(b.start_time || 0);
+                return timeB - timeA;
+            });
+            
+            // Show up to 5 most recent sessions
+            const recentSessions = sortedSessions.slice(0, 5);
+            
+            timeline.innerHTML = '';
+            
+            recentSessions.forEach(session => {
+                const startTime = new Date(session.start_time);
+                const timeStr = startTime.toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' });
+                
+                let icon = 'fas fa-search';
+                let title = 'Security Scan';
+                let description = '';
+                
+                if (session.status === 'completed') {
+                    icon = 'fas fa-check-circle';
+                    title = 'Security Scan Completed';
+                    const findingsCount = session.findings_count || 0;
+                    description = `Found ${findingsCount} security issue${findingsCount !== 1 ? 's' : ''}`;
+                } else if (session.status === 'running') {
+                    icon = 'fas fa-spinner fa-spin';
+                    title = 'Security Scan in Progress';
+                    description = `Currently scanning: ${session.current_stage || 'Processing...'}`;
+                } else if (session.status === 'failed') {
+                    icon = 'fas fa-exclamation-circle';
+                    title = 'Security Scan Failed';
+                    description = 'Scan encountered an error';
+                } else if (session.status === 'cancelled') {
+                    icon = 'fas fa-times-circle';
+                    title = 'Security Scan Cancelled';
+                    description = 'Scan was cancelled by user';
+                } else {
+                    description = `Status: ${session.status || 'Unknown'}`;
+                }
+                
+                const item = document.createElement('div');
+                item.className = 'activity-item';
+                item.innerHTML = `
+                    <div class="activity-icon">
+                        <i class="${icon}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h4>${title}</h4>
+                        <p>${description}</p>
+                        <p style="font-size: 0.8rem; color: #666; margin-top: 5px;"><i class="fas fa-clock"></i> ${timeStr}</p>
+                    </div>
+                `;
+                timeline.appendChild(item);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading recent activity:', error);
+            timeline.innerHTML = `
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h4>Error loading activity</h4>
+                        <p>Unable to load recent scan activity. Please refresh the page.</p>
+                    </div>
+                </div>`;
+        });
+}
+
+function quickScan(type) {
+
+    const scanUrl = `/scan?type=${type}&quick=true`;
+    window.location.href = scanUrl;
+}
+
+function exportData() {
+
+    const data = {
+        timestamp: new Date().toISOString(),
+        stats: {
+            totalScans: document.getElementById('totalScans').textContent,
+            activeFindings: document.getElementById('activeFindings').textContent,
+            securityScore: document.getElementById('securityScore').textContent
+        }
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cloudsec-dashboard-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+
+    showAlert('Dashboard data exported successfully!', 'success');
+}
+
+function showAlert(message, type) {
+    const alertContainer = document.getElementById('alertContainer');
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} fade-in`;
+    alert.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+        ${message}
+        <button type="button" class="alert-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    alertContainer.appendChild(alert);
+    
+    setTimeout(() => {
+        if (alert.parentElement) {
+            alert.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}
